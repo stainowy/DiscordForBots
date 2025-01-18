@@ -1,0 +1,10 @@
+{
+    "token": "YourToken",
+    "token2": "YourToken2",
+}
+
+// ---------------------------------------------------------------------
+// Token library is a place where you can store your tokens under some name, 
+// and import them in config by that name, rather than pasting the token.
+// Remember to copy the templates exactly: ' "name": "token", '
+// ---------------------------------------------------------------------
