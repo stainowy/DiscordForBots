@@ -2,7 +2,7 @@
   "token": "Your Bot Token",
   
   // Token Libruary Config
-  "libruary_status": "ON", // ON or OFF
+  "libruary_status": "OFF", // ON or OFF
   "libruary_path": "tokenLibruary.json5", // This file, must be json5 file
   "libruary_preset": "token",
 
