@@ -20,8 +20,8 @@ PING = config.get("ping")
 STATUS_MODE = config.get("status_mode")
 STATUS_CONTENT = config.get("status_content")
 
-LIBRUARY_PATH = config.get("libruary_path")
-LIBRUARY_STATUS = config.get("libruary_status")
+LIBRUARY_PATH = config.get("library_path")
+LIBRUARY_STATUS = config.get("library_status")
 
 intents = discord.Intents.all()
 
@@ -220,7 +220,7 @@ async def change_name():
     else:
         clear_console()
         start_widget()
-        select_action()
+        await select_action()
 
 
 # - - - - - - - - - - - - - - - - - - - - - -  DM  - - - - - - - - - - - - - - - - - - - - - - #
@@ -451,7 +451,13 @@ async def show_channel_selection(guild):
                     clear_console()
                     start_widget()
                     await show_server_selection()
-                    
+                elif key == "!help":
+                    print(" ")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!help - View the help view (this view)")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!back - Go back to previous view")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!home - Go to the home view")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!leave - Leave this server")
+   
 
 
 
@@ -682,3 +688,4 @@ except Exception as e:
     start_widget()
     print(f"{Fore.RED}ERROR {Fore.WHITE} There was a problem starting the bot. Check the correctness of the token in the config!")
     print(f"{Fore.YELLOW}TIP{Fore.WHITE} Check if the template was created correctly in the library and imported correctly in the config")
+    print(f"{Fore.YELLOW}TIP{Fore.WHITE} Check if your application has all three intents")
