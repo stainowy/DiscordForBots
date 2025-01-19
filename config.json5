@@ -8,7 +8,7 @@
 
   // Optional settings, default is recommended settings
   "prefix": "dfb.", // Custom prefix, max 5 characters
-  "debug": "ON", // ON or OFF
+  "debug": "OFF", // ON or OFF
   "commands": "ON", // ON or OFF
   "ping": "ON", // ON or OFF
 
