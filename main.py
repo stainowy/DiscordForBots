@@ -95,6 +95,7 @@ async def on_message(message):
             await get_debug(f"User '{message.author.name}' tried to use the '@ping' command but it is disabled in the config")
             pass
 
+
 async def get_user_id_or_nick(input_value, bot):
     if input_value.startswith("@"):
         nick = input_value[1:]
@@ -612,49 +613,51 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_ready():
-        try:
-            clear_console()
-            start_widget()
-            await get_debug(f"Logged in as {bot.user}")
-            required_intents = ["messages", "guilds", "members"]
-            missing_intents = [intent for intent in required_intents if not getattr(intents, intent, False)]
-            if missing_intents:
-                await get_debug(f"Missing intents: {', '.join(missing_intents)}")
-                pass
+    try:
+        clear_console()
+        start_widget()
+        await get_debug(f"Logged in as {bot.user}")
+        required_intents = ["messages", "guilds", "members"]
+        missing_intents = [intent for intent in required_intents if not getattr(intents, intent, False)]
+        if missing_intents:
+            await get_error(f"Missing intents: {', '.join(missing_intents)}")
+            return
 
-            for guild in bot.guilds:
-                bot_member = guild.get_member(bot.user.id)
-                if bot_member.guild_permissions.administrator:
-                    continue
-                else:
-                    await get_error(f"Bot does NOT have admin rights on server: {guild.name}")
-                    pass
-            try:
-                if STATUS_MODE == "Play":
-                    activity = discord.Game(name=STATUS_CONTENT)
-                    await bot.change_presence(activity=activity)
-                elif STATUS_MODE == "Watch":
-                    activity = discord.Activity(type=discord.ActivityType.watching, name=STATUS_CONTENT)
-                    await bot.change_presence(activity=activity)
-                elif STATUS_MODE == "Compet":
-                    activity = discord.Activity(type=discord.ActivityType.competing, name=STATUS_CONTENT)
-                    await bot.change_presence(activity=activity)
-                elif STATUS_MODE == "Listen":
-                    activity = discord.Activity(type=discord.ActivityType.listening, name=STATUS_CONTENT)
-                    await bot.change_presence(activity=activity)
-                elif STATUS_MODE == "Custom":
-                    activity = discord.CustomActivity(name=STATUS_CONTENT)
-                    await bot.change_presence(activity=activity)
-                elif STATUS_MODE == "None":
-                    await bot.change_presence(status=discord.Status.online)
-                else:
-                    pass
-                await get_debug(f"Status has been setted")
-            except Exception as e:
-                await get_error("Problem with set a activity!")
-            await select_options()
+        for guild in bot.guilds:
+            bot_member = guild.get_member(bot.user.id)
+            if bot_member.guild_permissions.administrator:
+                continue
+            else:
+                await get_error(f"Bot does NOT have admin rights on server: {guild.name}")
+                return
+
+        try:
+            if STATUS_MODE == "Play":
+                activity = discord.Game(name=STATUS_CONTENT)
+                await bot.change_presence(activity=activity)
+            elif STATUS_MODE == "Watch":
+                activity = discord.Activity(type=discord.ActivityType.watching, name=STATUS_CONTENT)
+                await bot.change_presence(activity=activity)
+            elif STATUS_MODE == "Compet":
+                activity = discord.Activity(type=discord.ActivityType.competing, name=STATUS_CONTENT)
+                await bot.change_presence(activity=activity)
+            elif STATUS_MODE == "Listen":
+                activity = discord.Activity(type=discord.ActivityType.listening, name=STATUS_CONTENT)
+                await bot.change_presence(activity=activity)
+            elif STATUS_MODE == "Custom":
+                activity = discord.CustomActivity(name=STATUS_CONTENT)
+                await bot.change_presence(activity=activity)
+            elif STATUS_MODE == "None":
+                await bot.change_presence(status=discord.Status.online)
+            else:
+                return
+            await get_debug(f"Status has been setted")
         except Exception as e:
-            await get_error(f"{str(e)}")
+            await get_error("Problem with set a activity!")
+        await select_options()
+    except Exception as e:
+        await get_error(f"{str(e)}")
+
 
 if LIBRUARY_STATUS == "ON":
     with open(LIBRUARY_PATH, "r") as config_file:
