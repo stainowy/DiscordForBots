@@ -6,8 +6,9 @@ from art import text2art
 import os
 from colorama import init, Fore
 from collections import deque
-import asyncio
 import time
+from PIL import Image
+
 
 init()
 
@@ -139,6 +140,7 @@ async def select_options():
 async def select_action():
     print(f" {Fore.CYAN}[1] {Fore.WHITE}Change Status")
     print(f" {Fore.CYAN}[2] {Fore.WHITE}Change Name")
+    print(f" {Fore.CYAN}[3] {Fore.WHITE}Change Profile Picture")
     while True:
         key = await get_keypress()
         if key == "1":
@@ -149,12 +151,51 @@ async def select_action():
             clear_console()
             start_widget()
             await change_name()
+        elif key == "3":
+            clear_console()
+            start_widget()
+            await change_profile_picture()
         elif key == "!back" or key == "!home":
             clear_console()
             start_widget()
             await select_options()
         else:
             await get_error("Invalid option!")
+
+async def change_profile_picture():
+    print(f"{Fore.CYAN}INFO {Fore.WHITE}You are in the edit view of your bot's profile picture")
+    print(f"{Fore.CYAN}INFO {Fore.WHITE}Enter the path to the new profile picture")
+    path = input(f"")
+
+    if path == "!back" or path == "!home":
+        clear_console()
+        start_widget()
+        await select_options()
+
+    if not os.path.exists(path):
+        await get_error("File does not exist! Please check the path and try again.")
+        return
+
+    if not path.lower().endswith((".png", ".jpg", ".jpeg")):
+        await get_error("Invalid file format! Please use PNG or JPG.")
+        return
+
+    try:
+        with Image.open(path) as img:
+            if img.width > 1024 or img.height > 1024:
+                await get_error("Image dimensions exceed 1024x1024! Resize and try again.")
+                return
+
+        with open(path, "rb") as image_file:
+            await bot.user.edit(avatar=image_file.read())
+
+        clear_console()
+        start_widget()
+        await get_debug("Profile picture updated successfully!")
+        await select_options()
+
+    except Exception as e:
+        await get_error(f"An error occurred: {e}")
 
 async def change_status():
     print(f"{Fore.CYAN}INFO {Fore.WHITE}Select your activity mode:")
@@ -221,6 +262,7 @@ async def change_name():
         clear_console()
         start_widget()
         await select_action()
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - -  DM  - - - - - - - - - - - - - - - - - - - - - - #
@@ -430,33 +472,141 @@ async def show_channel_selection(guild):
     print(f"{Fore.CYAN}INFO {Fore.WHITE}Select the channel you want to view")
     print(f"{Fore.CYAN}INFO {Fore.WHITE}To undo your selection, use !back")
     print("")
+
     try:
         while True:
             key = await get_keypress()
-            if key.isdigit() and 1 <= int(key) <= len(channels):
+
+            if key.startswith("!create-channel"):
+                _, channel_name = key.split(maxsplit=1)
+                new_channel = await guild.create_text_channel(channel_name)
+                clear_console()
+                start_widget()
+                await show_channel_selection(guild=guild)
+                await get_debug(f"Channel '{new_channel.name}' created at position {new_channel.position}.")
+
+            elif key.startswith("!delete-channel"):
+                _, channel_number = key.split(maxsplit=1)
+                channel_number = int(channel_number) - 1
+                if 0 <= channel_number < len(channels):
+                    channel_to_delete = channels[channel_number]
+                    await channel_to_delete.delete()
+                    clear_console()
+                    start_widget()
+                    await show_channel_selection(guild=guild)
+                    await get_debug(f"Channel '{channel_to_delete.name}' deleted.")
+                else:
+                    await get_error("Invalid channel number.")
+
+            elif key.startswith("!edit-channel"):
+                _, channel_number = key.split(maxsplit=1)
+                channel_number = int(channel_number) - 1
+                if 0 <= channel_number < len(channels):
+                    channel = channels[channel_number]
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}{Fore.WHITE}Editing channel: {channel.name}")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}What would you like to edit?")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE} 1. Name")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE} 2. Topic")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE} 3. Slowmode")
+                    edit_choice = input(f"")
+
+                    if edit_choice == "1":
+                        clear_console()
+                        start_widget()
+                        await show_channel_selection(guild=guild)
+                        print(f"{Fore.YELLOW}MSG {Fore.WHITE}Enter new name:")
+                        new_name = input("")
+                        await channel.edit(name=new_name)
+                        clear_console()
+                        start_widget()
+                        await show_channel_selection(guild=guild)
+                        await get_debug(f"Channel renamed to '{new_name}'.")
+                    elif edit_choice == "2":
+                        clear_console()
+                        start_widget()
+                        await show_channel_selection(guild=guild)
+                        print(f"{Fore.YELLOW}MSG {Fore.WHITE}Enter new topic:")
+                        new_topic = input("")
+                        await channel.edit(topic=new_topic)
+                        clear_console()
+                        start_widget()
+                        await show_channel_selection(guild=guild)
+                        await get_debug("Channel topic updated.")
+                    elif edit_choice == "3":
+                        clear_console()
+                        start_widget()
+                        await show_channel_selection(guild=guild)
+                        print(f"{Fore.YELLOW}MSG {Fore.WHITE} Enter new slowmode delay (seconds): ")
+                        new_slowmode = int(input(""))
+                        await channel.edit(slowmode_delay=new_slowmode)
+                        clear_console()
+                        start_widget()
+                        await show_channel_selection(guild=guild)
+                        await get_debug(f"Channel slowmode updated to {new_slowmode} seconds.")
+                    else:
+                        await get_error("Invalid choice.")
+                else:
+                    await get_error("Invalid channel number.")
+
+            elif key.startswith("!info-channel"):
+                _, channel_number = key.split(maxsplit=1)
+                channel_number = int(channel_number) - 1
+                if 0 <= channel_number < len(channels):
+                    channel = channels[channel_number]
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}{Fore.WHITE}Channel Info:")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}ID: {channel.id}")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}Name: {channel.name}")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}Position: {channel.position}")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}Topic: {channel.topic if channel.topic else 'No topic set'}")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}Slowmode: {channel.slowmode_delay} seconds")
+                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}Permissions:")
+                    for perm, value in channel.overwrites.items():
+                        print(f"{Fore.YELLOW}MSG  {perm}: {value}")
+                else:
+                    await get_debug(f"Invalid channel number.")
+
+            elif key.isdigit() and 1 <= int(key) <= len(channels):
                 selected_channel = channels[int(key) - 1]
                 await send_message(selected_channel)
                 break
+
+            elif key == "!back":
+                clear_console()
+                start_widget()
+                await show_server_selection()
+            
+            elif key == "!refresh":
+                clear_console()
+                start_widget()
+                await show_channel_selection(guild=guild)
+
+            elif key == "!home":
+                clear_console()
+                start_widget()
+                await select_options()
+
+            elif key == "!leave":
+                await guild.leave()
+                clear_console()
+                start_widget()
+                await show_server_selection()
+
+            elif key == "!help":
+                print(" ")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!help - View the help view (this view)")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!back - Go back to previous view")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!home - Go to the home view")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!refresh - Refresh this view")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!leave - Leave this server")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!create-channel [name] - Create a new text channel")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!delete-channel [number] - Delete a channel by its number")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!edit-channel [number] - Edit a channel's settings by its number")
+                print(f"{Fore.YELLOW}MSG {Fore.WHITE}!info-channel [number] - Show info about a channel")
+
             else:
-                if key == "!back":
-                    clear_console()
-                    start_widget()
-                    await show_server_selection()
-                elif key == "!home":
-                    clear_console()
-                    start_widget()
-                    await select_options()
-                elif key == "!leave":
-                    await guild.leave()
-                    clear_console()
-                    start_widget()
-                    await show_server_selection()
-                elif key == "!help":
-                    print(" ")
-                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!help - View the help view (this view)")
-                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!back - Go back to previous view")
-                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!home - Go to the home view")
-                    print(f"{Fore.YELLOW}MSG {Fore.WHITE}!leave - Leave this server")
+                print(f"{Fore.RED}ERROR {Fore.WHITE}Unknown command or invalid input.")
+
+
    
 
 
