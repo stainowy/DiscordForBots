@@ -98,4 +98,7 @@ To create a new preset, just add another line like `"name": "token"`.
 > - Special thanks to [@graynix](https://github.com/graynixx) for testing the program and reporting bugs.  
 > - Special thanks to [@tomusiek](https://github.com/tomusiek) for the project idea.  
 
+![Repo Views](https://komarev.com/ghpvc/?username=stainowy&repo=DiscordForBots&color=blue)
+
+
 ❤ Made with love by [@stainowy](https://github.com/stainowy)
