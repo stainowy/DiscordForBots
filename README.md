@@ -3,6 +3,8 @@
 **Discord For Bots** is an unofficial open-source application.  
 With **Discord For Bots**, you can use Discord just like an application!
 
+**> File dfb.exe:** https://mega.nz/file/fZpkgZaK#zrgn4z9r516mCGQ50d5YxRXIKMtIbf93zrwYCGFni0Q 
+
 ---
 
 ## Getting Started
